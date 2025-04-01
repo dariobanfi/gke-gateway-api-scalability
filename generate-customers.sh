@@ -4,7 +4,7 @@
 mkdir -p k8s/customers
 
 # Loop from 1 to 100
-for i in {1..100}; do
+for i in {1..500}; do
     # Create the customer name
     customer="customer$i"
     
