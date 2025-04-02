@@ -22,7 +22,7 @@ Generate 100 customers
 
 Deploy the manifests
 
-`kubectl apply -f k8s/`
+`kubectl apply -f manifests/`
 
 Wait for the cluster to reconcile and after run:
 
