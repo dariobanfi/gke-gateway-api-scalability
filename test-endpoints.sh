@@ -1,11 +1,9 @@
 #!/bin/bash
 
-# ANSI escape codes for colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Function to call the endpoint and display the HTTP status code with color
 call_endpoint() {
   local url="$1"
   http_code=$(curl -s -o /dev/null -w "%{http_code}" "$url")

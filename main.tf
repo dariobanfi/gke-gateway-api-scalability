@@ -32,7 +32,6 @@ resource "google_project_service" "gke_api" {
 }
 
 
-# Fetch default network details (optional but good practice)
 data "google_compute_network" "default_network" {
   name = var.network_name
 }
@@ -42,15 +41,12 @@ resource "google_container_cluster" "primary" {
   location = var.region
   project  = var.project_id
 
-  # Use the default network
   network    = data.google_compute_network.default_network.id
-  subnetwork = "" # Let GKE choose a subnetwork in the default network for the region
+  subnetwork = ""
 
-  # Enable Autopilot
   enable_autopilot = true
 
 
-  # Basic cluster settings (Autopilot manages most)
   initial_node_count = 1 # Required placeholder, Autopilot manages actual nodes
   logging_service    = "logging.googleapis.com/kubernetes"
   monitoring_service = "monitoring.googleapis.com/kubernetes"
@@ -59,7 +55,6 @@ resource "google_container_cluster" "primary" {
   deletion_protection = false
 }
 
-# Configure Kubernetes provider to connect to the created GKE cluster
 data "google_client_config" "default" {}
 
 provider "kubernetes" {
@@ -68,20 +63,6 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(google_container_cluster.primary.master_auth[0].cluster_ca_certificate)
 }
 
-# --- Kubernetes Resources ---
-
-# Define the Namespace (optional, good practice)
-resource "kubernetes_namespace" "app_ns" {
-  metadata {
-    name = "hello-app-ns"
-  }
-
-  # Ensure cluster is ready before creating namespace
-  depends_on = [google_container_cluster.primary]
-}
-
-
-# Create a global static IP address for the load balancer
 resource "google_compute_global_address" "static_ip_global" {
   name         = "lb-address"
   project      = var.project_id
@@ -89,18 +70,15 @@ resource "google_compute_global_address" "static_ip_global" {
   ip_version   = "IPV4"
 }
 
-
 resource "google_dns_record_set" "lb_dns" {
   name         = "${var.wildcard_domain}."
   managed_zone = data.google_dns_managed_zone.demo_zone.name
-  project      = "darioenv-clouddns"
+  project      = var.dns_project_id
   type         = "A"
   ttl          = 300
   rrdatas      = [google_compute_global_address.static_ip_global.address]
 }
 
-
-# dns
 
 resource "google_certificate_manager_dns_authorization" "default" {
   name        = "${var.cert_base_name}-dns-auth"
@@ -111,14 +89,14 @@ resource "google_certificate_manager_dns_authorization" "default" {
 }
 
 data "google_dns_managed_zone" "demo_zone" {
-  name    = "dariobanfi-demo"
-  project = "darioenv-clouddns"
+  name    = var.dns_zone_name
+  project = var.dns_project_id
 }
 
 resource "google_dns_record_set" "cert_validation" {
   name         = google_certificate_manager_dns_authorization.default.dns_resource_record[0].name
   managed_zone = data.google_dns_managed_zone.demo_zone.name
-  project      = "darioenv-clouddns"
+  project      = var.dns_project_id
   type         = google_certificate_manager_dns_authorization.default.dns_resource_record[0].type
   ttl          = 300
   rrdatas      = [google_certificate_manager_dns_authorization.default.dns_resource_record[0].data]

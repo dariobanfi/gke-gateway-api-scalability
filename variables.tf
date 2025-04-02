@@ -3,6 +3,12 @@ variable "project_id" {
   default     = "darioenv-lb-limits"
 }
 
+# I centralize my DNS records in one separate project, but you can use the same as project_id
+variable "dns_project_id" {
+  type        = string
+  default     = "darioenv-clouddns"
+}
+
 variable "region" {
   type        = string
   default     = "europe-west4"
@@ -29,6 +35,13 @@ variable "base_domain_for_auth" {
 }
 
 variable "cert_base_name" {
+  description = "Base name for Certificate Manager resources."
   type        = string
-  default     = "lbimits-wildcard" # Used to derive resource names
+  default     = "lbimits-wildcard"
+}
+
+variable "dns_zone_name" {
+  description = "Name for the DNS zone"
+  type        = string
+  default     = "dariobanfi-demo"
 }

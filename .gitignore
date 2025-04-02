@@ -7,5 +7,7 @@
 crash.log
 
 # Generated customer manifests
-k8s/customers/
+**/customers/
+
+
 .terraform.lock.hcl
